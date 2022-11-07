@@ -1,0 +1,297 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2513
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 # install and load required packages\
+install.packages("tidyverse")\
+library(tidyverse)\
+library(lubridate)\
+library(readr)\
+library(dplyr)\
+library(ggplot2)\
+library(forcats)\
+getwd()\
+\
+\
+#Step 1: Collect Data\
+#Upload data sets\
+mar_2021_update <- read_csv("Desktop/Cyclistic Data/mar_2021_update.csv")\
+apr_2021_update <- read_csv("Desktop/Cyclistic Data/apr_2021_update.csv")\
+may_2021_update <- read_csv("Desktop/Cyclistic Data/may_2021_update.csv")\
+jun_2021_update <- read_csv("Desktop/Cyclistic Data/jun_2021_update.csv")\
+jul_2021_update <- read_csv("Desktop/Cyclistic Data/jul_2021_update.csv")\
+aug_2021_update <- read_csv("Desktop/Cyclistic Data/aug_2021_update.csv")\
+sep_2021_update <- read_csv("Desktop/Cyclistic Data/sep_2021_update.csv")\
+oct_2021_update <- read_csv("Desktop/Cyclistic Data/oct_2021_update.csv")\
+nov_2021_update <- read_csv("Desktop/Cyclistic Data/nov_2021_update.csv")\
+dec_2021_update <- read_csv("Desktop/Cyclistic Data/dec_2021_update.csv")\
+jan_2022_update <- read_csv("Desktop/Cyclistic Data/jan_2022_update.csv")\
+feb_2022_update <- read_csv("Desktop/Cyclistic Data/feb_2022_update.csv")\
+\
+\
+#Step 2: Wrangle Data and Combine Into A Single File\
+#Convert ride_id and rideable_type columns into strings\
+mar_2021_update <- mutate(mar_2021_update, ride_id=as.character(ride_id), rideable_type=as.character(rideable_type))\
+apr_2021_update <- mutate(apr_2021_update, ride_id=as.character(ride_id), rideable_type=as.character(rideable_type))\
+may_2021_update <- mutate(may_2021_update, ride_id=as.character(ride_id), rideable_type=as.character(rideable_type))\
+jun_2021_update <- mutate(jun_2021_update, ride_id=as.character(ride_id), rideable_type=as.character(rideable_type))\
+jul_2021_update <- mutate(jul_2021_update, ride_id=as.character(ride_id), rideable_type=as.character(rideable_type))\
+aug_2021_update <- mutate(aug_2021_update, ride_id=as.character(ride_id), rideable_type=as.character(rideable_type))\
+sep_2021_update <- mutate(sep_2021_update, ride_id=as.character(ride_id), rideable_type=as.character(rideable_type))\
+oct_2021_update <- mutate(oct_2021_update, ride_id=as.character(ride_id), rideable_type=as.character(rideable_type))\
+nov_2021_update <- mutate(nov_2021_update, ride_id=as.character(ride_id), rideable_type=as.character(rideable_type))\
+dec_2021_update <- mutate(dec_2021_update, ride_id=as.character(ride_id), rideable_type=as.character(rideable_type))\
+jan_2022_update <- mutate(jan_2022_update, ride_id=as.character(ride_id), rideable_type=as.character(rideable_type))\
+feb_2022_update <- mutate(feb_2022_update, ride_id=as.character(ride_id), rideable_type=as.character(rideable_type))\
+\
+#Stack individual month's data frames into one big data frame\
+all_trips <- bind_rows(mar_2021_update, apr_2021_update, may_2021_update, jun_2021_update, jul_2021_update, aug_2021_update, sep_2021_update, oct_2021_update, nov_2021_update, dec_2021_update, jan_2022_update, feb_2022_update)\
+\
+\
+#Step 3: Clean Up and Add Data to Prepare for Analysis\
+#Inspect the new table that has been created\
+head(all_trips)\
+colnames(all_trips)\
+nrow(all_trips)\
+dim(all_trips)\
+str(all_trips)\
+summary(all_trips)\
+glimpse(all_trips)\
+View(all_trips)\
+\
+#Add another column, "ride_length_2" in seconds\
+all_trips$ride_length_2 <- difftime(all_trips$ended_at, all_trips$started_at)\
+colnames(all_trips)\
+\
+#Convert "ride_length_2" to numeric so we can run calculations on the data\
+is.factor(all_trips$ride_length_2) #check to see if the data type is a factor\
+all_trips$ride_length_2 <- as.numeric(as.character(all_trips$ride_length_2))\
+is.numeric(all_trips$ride_length_2) #check to see if the data is numeric\
+\
+#Inspect new dataset\
+glimpse(all_trips)\
+str(all_trips)\
+colnames(all_trips)\
+\
+#Remove "bad" data\
+#Remove duplicate rows and rows with null data\
+all_trips_v4 <- distinct(all_trips)\
+all_trips_v5 <- na.omit(all_trips_v4)\
+\
+#Remove rows where ride_length_2 < 0 and examine data\
+all_trips_v2 <- all_trips_v5[!(all_trips_v5$ride_length_2 < 0),]\
+head(all_trips_v2)\
+colnames(all_trips_v2)\
+glimpse(all_trips_v2)\
+is.numeric(all_trips_v2$ride_length_2)\
+View(all_trips_v2)\
+\
+\
+#Step 4: Conduct Descriptive Analysis\
+#Descriptive analysis on ride_length\
+mean(all_trips_v2$ride_length_2)\
+median(all_trips_v2$ride_length_2)\
+max(all_trips_v2$ride_length_2)\
+min(all_trips_v2$ride_length_2)\
+\
+#Condensing the four lines above\
+summary(all_trips_v2$ride_length_2)\
+\
+#Compare members and casual users\
+aggregate(all_trips_v2$ride_length_2 ~ all_trips_v2$member_casual, FUN = mean)\
+aggregate(all_trips_v2$ride_length_2 ~ all_trips_v2$member_casual, FUN = median)\
+aggregate(all_trips_v2$ride_length_2 ~ all_trips_v2$member_casual, FUN = max)\
+aggregate(all_trips_v2$ride_length_2 ~ all_trips_v2$member_casual, FUN = min)\
+\
+#See the average ride time by each day for members vs casual users\
+aggregate(all_trips_v2$ride_length_2 ~ all_trips_v2$member_casual + all_trips_v2$day_of_week, FUN = mean)\
+\
+#The days of the week are out of order. The fix:\
+all_trips_v2$day_of_week <- ordered(all_trips_v2$day_of_week, levels=c("Not Applicable", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))\
+\
+#Run the average ride time by each day for members vs casual users\
+aggregate(all_trips_v2$ride_length_2 ~ all_trips_v2$member_casual + all_trips_v2$day_of_week, FUN = mean)\
+\
+#Analyze ridership data by type and weekday\
+all_trips_v2 %>% \
+  mutate(weekday = wday(started_at, label = TRUE)) %>%\
+  group_by(member_casual, weekday) %>%\
+  summarize(number_of_rides=n(), average_duration=mean(ride_length_2)) %>%\
+  arrange(member_casual, weekday)\
+\
+#Visualize the number of rides by rider type\
+all_trips_v2 %>%\
+  mutate(weekday=wday(started_at, label = TRUE)) %>%\
+  group_by(member_casual, weekday) %>%\
+  summarize(number_of_rides = n(), average_duration = mean(ride_length_2)) %>%\
+  arrange(member_casual, weekday) %>%\
+  ggplot(aes(x=weekday, y=number_of_rides, fill=member_casual)) + geom_col(position="dodge") + labs(x="Weekday", y="Total Rides (in millions)", title="Total Rides Per Weekday") + theme(plot.title=element_text(hjust=0.5)) + scale_fill_discrete(name="User Type", labels=c("Casual", "Member"))\
+\
+#Visualize the average duration\
+all_trips_v2 %>%\
+  mutate(weekday=wday(started_at, label=TRUE)) %>%\
+  group_by(member_casual, weekday) %>%\
+  summarize(number_of_rides=n(), average_duration=mean(ride_length_2)) %>%\
+  arrange(member_casual, weekday) %>%\
+  ggplot(aes(x=weekday, y=average_duration, fill=member_casual)) + geom_col(position="dodge") + labs(x="Weekday", y="Average Duration (in seconds)", title="Average Duration by Weekday") + theme(plot.title=element_text(hjust=0.5)) + scale_fill_discrete(name="User Type", labels=c("Casual", "Member"))\
+\
+#Pie chart of members vs. casual riders\
+sum(all_trips_v2$member_casual=="member") #count of members=3,127,207\
+sum(all_trips_v2$member_casual=="casual") #count of casual riders=2,540,634\
+x <- c(3127207, 2540634)\
+labels <- c("member", "casual")\
+piepercent <- round(100*x/sum(x), 1)\
+pie(x, labels = piepercent, main = "User Type",col = rainbow(length(x)))\
+legend("topright", c("Member","Casual"), cex = 0.8,\
+       fill = rainbow(length(x)))\
+\
+#Number of members vs casual riders\
+aggregate(all_trips_v2$member_casual, by=list(all_trips_v2$member_casual), FUN=length)\
+\
+#Ride time vs. bike type\
+#Sum of rides by bike type\
+aggregate(all_trips_v2$rideable_type, by=list(all_trips_v2$rideable_type), FUN=length)\
+\
+#Mean of ride length by bike type and user type\
+aggregate(all_trips_v2$ride_length_2, by = list(all_trips_v2$rideable_type, all_trips_v2$member_casual), FUN=mean)\
+\
+#Visualize member status and bike type\
+all_trips_v2 %>%\
+  group_by(rideable_type, member_casual) %>%\
+  summarize(average_duration=mean(ride_length_2)) %>%\
+  ggplot(aes(x=rideable_type, y=average_duration, fill=member_casual)) + geom_col(position = "dodge") + labs(x="Bike Type", y="Average Duration (in seconds)", title="Average Duration of User Type by Bike Type") + theme(plot.title=element_text(hjust=0.5)) + scale_fill_discrete(name="User Type", labels=c("Casual", "Member"))\
+\
+#Mean, median, max, and min of ride length by bike type, user type, and weekday\
+aggregate(all_trips_v2$ride_length_2, by = list(all_trips_v2$rideable_type, all_trips_v2$member_casual, all_trips_v2$day_of_week), FUN=mean)\
+\
+#Visualize average duration of rides by members\
+all_trips_v2 %>% \
+  filter(member_casual == "member") %>%\
+  mutate(weekday = wday(started_at, label = TRUE)) %>% \
+  group_by(rideable_type, weekday) %>% \
+  summarize(number_of_rides = n(), average_duration = mean(ride_length_2)) %>% \
+  arrange(rideable_type, weekday)  %>% \
+  ggplot(aes(x = weekday, y = average_duration, fill = rideable_type)) +\
+  geom_col(position = "dodge") + labs(x="Weekday", y="Average Duration (in seconds)", title="Average Duration of Rides by Members") + theme(plot.title=element_text(hjust=0.5)) + scale_fill_discrete(name="Bicycle Type", labels=c("Classic Bike", "Electric Bike"))\
+\
+#Visualize average duration of rides by casual members\
+all_trips_v2 %>% \
+  filter(member_casual == "casual") %>%\
+  mutate(weekday = wday(started_at, label = TRUE)) %>% \
+  group_by(rideable_type, weekday) %>% \
+  summarize(number_of_rides = n(), average_duration = mean(ride_length_2)) %>% \
+  arrange(rideable_type, weekday)  %>% \
+  ggplot(aes(x = weekday, y = average_duration, fill = rideable_type)) +\
+  geom_col(position = "dodge") + labs(x="Weekday", y="Average Duration (in seconds)", title="Average Duration of Rides by Casual Riders") + theme(plot.title=element_text(hjust=0.5)) + scale_fill_discrete(name="Bicycle Type", labels=c("Classic Bike", "Docked Bike", "Electric Bike"))\
+\
+\
+#Mean of ride length by start station and user type \
+aggregate(all_trips_v2$ride_length_2, by = list(all_trips_v2$start_station_name, all_trips_v2$member_casual), FUN=mean)\
+\
+#Visualize the Number of rides for members by start station\
+all_trips_v2 %>%\
+  filter(member_casual == "member") %>%\
+  group_by(start_station_name) %>%\
+  summarize(number_of_rides=n()) %>%\
+  arrange(desc(number_of_rides)) %>%\
+  head(10) %>%\
+  ggplot(aes(x = forcats::fct_reorder(start_station_name, number_of_rides), y = number_of_rides)) + geom_col(fill = "navy blue", width = 0.5) + coord_flip() + geom_text(aes(label = number_of_rides), nudge_y = 3, hjust = 1.5, color = "white") + labs(x="Start Station Name", y="Number of Rides", title="Stations with the Highest Number of Rides Started by Members")\
+\
+#Number of rides for casual riders by start station\
+all_trips_v2 %>%\
+  filter(member_casual == "casual") %>%\
+  group_by(start_station_name) %>%\
+  summarize(number_of_rides=n()) %>%\
+  arrange(desc(number_of_rides)) %>%\
+  head(10) %>%\
+  ggplot(aes(x = forcats::fct_reorder(start_station_name, number_of_rides), y = number_of_rides)) + geom_col(fill = "navy blue", width = 0.5) + coord_flip() + geom_text(aes(label = number_of_rides), nudge_y = 3, hjust = 1.5, color = "white") + labs(x="Start Station Name", y="Number of Rides", title="Stations with the Highest Number of Rides Started by Casual Riders")\
+\
+\
+#Number of rides for members by end station\
+all_trips_v2 %>%\
+  filter(member_casual == "member") %>%\
+  group_by(end_station_name) %>%\
+  summarize(number_of_rides=n()) %>%\
+  arrange(desc(number_of_rides)) %>%\
+  head(10) %>%\
+  ggplot(aes(x = forcats::fct_reorder(end_station_name, number_of_rides), y = number_of_rides)) + geom_col(fill = "navy blue", width = 0.5) + coord_flip() + geom_text(aes(label = number_of_rides), nudge_y = 3, hjust = 1.5, color = "white") + labs(x="End Station Name", y="Number of Rides", title="Stations with the Highest Number of Rides Ended by Members")\
+\
+#Number of rides for casual riders by end station\
+all_trips_v2 %>%\
+  filter(member_casual == "casual") %>%\
+  group_by(end_station_name) %>%\
+  summarize(number_of_rides=n()) %>%\
+  arrange(desc(number_of_rides)) %>%\
+  head(10) %>%\
+  ggplot(aes(x = forcats::fct_reorder(end_station_name, number_of_rides), y = number_of_rides)) + geom_col(fill = "navy blue", width = 0.5) + coord_flip() + geom_text(aes(label = number_of_rides), nudge_y = 3, hjust = 1.5, color = "white") + labs(x="End Station Name", y="Number of Rides", title="Stations with the Highest Number of Rides Ended by Casual Riders")\
+\
+#Pie chart of bike type for all riders\
+all_trips_v2 %>%\
+  group_by(rideable_type) %>%\
+  count() %>%\
+  ungroup() %>%\
+  mutate(perc = `n` / sum(`n`)) %>% \
+  arrange(perc) %>%\
+  mutate(labels = scales::percent(perc))%>%\
+  ggplot(aes(x = "", y = perc, fill = rideable_type)) +\
+  geom_col() + geom_label(aes(label = labels), position = position_stack(vjust = 0.5), show.legend = FALSE) +\
+  coord_polar(theta = "y") + labs(title="Rides Completed by Bike Types") + theme(plot.title=element_text(hjust = 0.5)) + scale_fill_discrete(name="Bike Types", labels=c("Classic Bike", "Docked Bike", "Electric Bike"))\
+\
+#Pie chart of bike type for members\
+all_trips_v2 %>%\
+  filter(member_casual == "member") %>%\
+  group_by(rideable_type) %>%\
+  count() %>%\
+  ungroup() %>%\
+  mutate(perc = `n` / sum(`n`)) %>% \
+  arrange(perc) %>%\
+  mutate(labels = scales::percent(perc))%>%\
+  ggplot(aes(x = "", y = perc, fill = rideable_type)) +\
+  geom_col(color = "black") +\
+  geom_label(aes(label = labels), color = c(1, "white"), position = position_stack(vjust = 0.5),\
+             show.legend = FALSE) +\
+  guides(fill = guide_legend(title = "Bike Types")) +\
+  scale_fill_viridis_d(labels=c("Classic Bike", "Electric Bike")) +\
+  coord_polar(theta = "y") + \
+  theme_void() + labs(title="Rides Completed by Bicycle Types") + theme(plot.title=element_text(hjust = 0.5))\
+\
+#Pie chart of bike type for casual riders\
+all_trips_v2 %>%\
+  filter(member_casual == "casual") %>%\
+  group_by(rideable_type) %>%\
+  count() %>%\
+  ungroup() %>%\
+  mutate(perc = `n` / sum(`n`)) %>% \
+  arrange(perc) %>%\
+  mutate(labels = scales::percent(perc))%>%\
+  ggplot(aes(x = "", y = perc, fill = rideable_type)) +\
+  geom_col(color = "black") +\
+  geom_label(aes(label = labels), color = c(1, "black", "white"),\
+             position = position_stack(vjust = 0.5),\
+             show.legend = FALSE) +\
+  guides(fill = guide_legend(title = "Bike Types")) +\
+  scale_fill_viridis_d(labels=c("Classic Bike", "Docked Bike", "Electric Bike")) +\
+  coord_polar(theta = "y") + \
+  theme_void() + labs(title="Rides Completed By Bicycle Type") + theme(plot.title=element_text(hjust = 0.5))\
+\
+##Bikes by all riders pie chart\
+all_trips_v2 %>%\
+  group_by(rideable_type) %>%\
+  count() %>%\
+  ungroup() %>%\
+  mutate(perc = `n` / sum(`n`)) %>% \
+  arrange(perc) %>%\
+  mutate(labels = scales::percent(perc))%>%\
+  ggplot(aes(x = "", y = perc, fill = rideable_type)) +\
+  geom_col(color = "black") +\
+  geom_label(aes(label = labels), color = c(1, "black", "white"),\
+             position = position_stack(vjust = 0.5),\
+             show.legend = FALSE) +\
+  guides(fill = guide_legend(title = "Bike Types")) +\
+  scale_fill_viridis_d(labels=c("Classic Bike", "Docked Bike", "Electric Bike")) +\
+  coord_polar(theta = "y") + \
+  theme_void() + labs(title="All Rides Completed by Bike Type") + theme(plot.title=element_text(hjust = 0.5))\
+}
